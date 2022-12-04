@@ -36,7 +36,7 @@ public:
   // helper functions
   bool is_left(Node *);
   bool is_right(Node *);
-  bool is_child(Node *);
+  bool is_leaf(Node *);
 
   bool has_left(Node *);
   bool has_right(Node *);

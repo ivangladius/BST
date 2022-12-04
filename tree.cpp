@@ -40,7 +40,7 @@ Node * BST::successor(Node * node) {
   if (node == max(root))
     return nullptr;
 
-  else if (is_child(node) && is_left(node)) 
+  else if (is_leaf(node) && is_left(node)) 
     return node->parent;
 
   else if (has_right(node)) {
@@ -114,12 +114,11 @@ void BST::remove(int key) {
     return;
   }
 
-  Node * pred = predecessor(to_delete);
+  std::uint8_t flag;
 
-  std::uint8_t flag = (is_left(to_delete)) ? 0 : 1;
-  to_delete = to_delete->parent;
-
-  if (is_child(to_delete)) {
+  if (is_leaf(to_delete)) {
+    flag = (is_left(to_delete)) ? 0 : 1;
+    to_delete = to_delete->parent;
     if (!flag) {
       delete to_delete->left;
       to_delete->left = nullptr;
@@ -127,13 +126,41 @@ void BST::remove(int key) {
       delete to_delete->right;
       to_delete->right = nullptr;
     }
-  }
-  else if (has_right(pred)) {
+  } else if (has_right(to_delete) && has_left(to_delete)) {
+
+    Node * pred = predecessor(to_delete);
     to_delete->key = pred->key;
-    delete pred->right;
-    pred->right = nullptr;
+
+    flag = (is_left(pred)) ? 0 : 1;
+    pred = pred->parent;
+    if (!flag) {
+      delete pred->left;
+      pred->left = nullptr;
+    } else {
+      delete pred->right;
+      pred->right = nullptr;
+    } 
+  } else if (has_right(to_delete) ^ has_left(to_delete)) {
+    Node * next;
+    if (has_right(to_delete)) 
+      next = to_delete->right;
+    else
+      next = to_delete->left;
+
+    // std::printf("to_delete: %d\n\n", to_delete->key);
+    // std::printf("next: %d\n\n", next->key);
+
+
+    to_delete->key = next->key;
+    to_delete->left = next->left;
+    to_delete->right = next->right;
+    if (next->left) 
+      next->left->parent = to_delete;
+    else if (next->right)
+      next->right->parent = to_delete;
+      
+    delete next;
   }
-  
 }
 // ####################################################
 
@@ -188,8 +215,8 @@ bool BST::is_right(Node * node) {
   return (node == node->parent->right) ? true : false;
 }
 
-bool BST::is_child(Node * node) {
-  return (!node->left && !node->right) ? true : false;
+bool BST::is_leaf(Node * node) {
+  return (has_left(node) || has_right(node)) ? false : true;
 }
 
 // #################################################
